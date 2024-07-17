@@ -12,6 +12,6 @@ Currently, the data is saved in an example sqlite database. If you want to chang
 
 # Next steps
 
--Add scrapers for more supermarkets
--Add menu for executing spiders outside shell
+-Add scrapers for more supermarkets  
+-Add menu for executing spiders outside shell  
 -Containerize application with Docker
