@@ -1,6 +1,7 @@
 import scrapy
 import utils
 from ..items import Product
+import re
 
 class vierciSpider(scrapy.Spider):
     name = 'vierci'
@@ -31,7 +32,7 @@ class vierciSpider(scrapy.Spider):
         next_page = response.xpath('//div[@class = "product-pager"]//div[@class = "product-pager-box"]//a[text()[normalize-space(.) = "Siguiente"]]/@href').get()
 
         if next_page is not None:
-            yield response.follow(next_page, callback=self.parse)
+            yield response.follow(next_page, callback=self.parse_page)
 
 
     def parse_product(self, response):
@@ -40,17 +41,20 @@ class vierciSpider(scrapy.Spider):
 
         product.set_all()
             
-        product['name'] = response.xpath('//h1[@class = "productname"]/text()').get().strip()
+        name = response.xpath('//h1[@class = "productname"]/text()').get().strip()
+        product['name'] = name.upper()
 
-        product['SKU'] = response.xpath('//div[@class = "sku"]/text()').get().strip().replace('Código de Barras:','')
+        sku = response.xpath('//div[@class = "sku"]/text()').get().strip().replace('Código de Barras:','')
+        product['SKU'] = sku.upper()
 
-        product['price'] = int(response.xpath('//span[@class = "productPrice"]/text()').get().strip().replace('.',''))
+        price = response.xpath('//span[@class = "productPrice"]/text()').get().strip()
+        product['price'] = int(re.sub('[^0-9]','', price))
 
         categories = utils.clean_list(response.xpath('//div[@class = "breadcrumb"]/text()').getall())
 
         for i,category in enumerate(('category1', 'category2', 'category3')):
             try:
-                product[category] = categories[i]
+                product[category] = categories[i].upper()
             except IndexError:
                 pass
 
