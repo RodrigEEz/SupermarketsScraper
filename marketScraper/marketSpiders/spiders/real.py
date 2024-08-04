@@ -1,5 +1,5 @@
 import scrapy
-import utils
+import marketSpiders.utils as utils
 from ..items import Product
 import re
 
@@ -66,7 +66,7 @@ class realSpider(scrapy.Spider):
         product['name'] = name.upper()
 
         sku = response.xpath('//div[@itemprop="sku"]/text()').get().strip()
-        product['SKU'] = sku.upper
+        product['SKU'] = sku.upper()
 
         price = response.xpath('//span[@class="price"]/text()').get().strip()
         product['price'] = int(re.sub('[^0-9]','', price))

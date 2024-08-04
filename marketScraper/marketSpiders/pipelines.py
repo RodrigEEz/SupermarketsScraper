@@ -5,7 +5,7 @@
 
 
 # useful for handling different item types with a single interface
-import utils
+import marketSpiders.utils as utils
 
 
 class DatabaseInsert:
@@ -19,7 +19,7 @@ class DatabaseInsert:
 
         self.cur.execute("""
             INSERT INTO PRODUCTS (SKU, name, price, category1, category2, category3, supermarket, date)
-            VALUES (?,?,?,?,?,?,?,?);
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s);
             """,
             (
                 item['SKU'],

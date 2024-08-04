@@ -1,5 +1,5 @@
 import scrapy
-import utils
+import marketSpiders.utils as utils
 from ..items import Product
 import re
 
@@ -38,7 +38,7 @@ class SalemmaSpider(scrapy.Spider):
 
       product_links = response.xpath('//a[@class="apsubtitle"]/@href').getall()
       
-      categories = re.sub('^(.*?)\\.py/', '', response.request.url)
+      categories = re.sub('\\?.+','',re.sub('^(.*?)\\.py/', '', response.request.url))
       categories = [x.replace('-',' ') for x in categories.split('/')]
       if len(categories) == 2: categories.append(categories[1]) 
       keys = ['1', '2', '3']
@@ -61,8 +61,9 @@ class SalemmaSpider(scrapy.Spider):
 
         product.set_all()
             
-        product['name'] = response.xpath('//p[@class="titledetails"]//text()').get().strip() + \
+        name = response.xpath('//p[@class="titledetails"]//text()').get().strip() + \
                         " " + response.xpath('//p[@class="pdivtitledetails"]//text()').get().strip()
+        product['name'] = name.upper()
 
         product['SKU'] = response.xpath('//p[@class="pricedetails-off"]//text()').get().strip().replace('Codigo:','')
 

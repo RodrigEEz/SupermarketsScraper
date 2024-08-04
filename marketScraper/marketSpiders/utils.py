@@ -1,4 +1,5 @@
-import re, datetime, sqlite3
+import re, datetime, mysql
+import mysql.connector
 
 def clean_list(query):
     query = [x.replace('\r', '').replace('\n', '').strip() for x in query]
@@ -17,4 +18,6 @@ def get_today():
 def define_connection():
 
     #for sqlite3
-    return sqlite3.connect('../../example_database.sqlite')
+    return mysql.connector.connect(
+        user='root',password='root',host='mysql',port='3306',database='db'
+    )

@@ -1,8 +1,0 @@
-ALPHA VERSIONS:
-
-V.1 ------------------------------------
-date commited: 16/07/2024
-
-- created SupermarketScraper project
-- created spyders that crawl through Grupo Vierci's supermarket and extract product information
-- created connection between spyders and database instance to store extracted data

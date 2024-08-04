@@ -1,5 +1,5 @@
 import scrapy
-import utils
+import marketSpiders.utils as utils
 from ..items import Product
 import re
 
