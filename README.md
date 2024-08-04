@@ -4,11 +4,11 @@ Python project that scrapes product prices from websites of paraguayan major sup
 
 # How to use
 
-This is an early version of the project. You can enter in marketScraper and look for scraper names, then run this command in the shell
+Run when in the root folder:
 
-```scrapy crawl 'enter the scraper you want to test here'```
+```docker-compose up```
 
-Currently, the data is saved in an example sqlite database. If you want to change the database where information is stored, go to ```marketSpiders/pipelines.py``` and change ```DatabaseInsert``` class.
+After the images are set up, the app container will start saving the scraped data into the containerized database
 
 # Next steps
 
