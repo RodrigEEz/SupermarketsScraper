@@ -1,6 +1,9 @@
 services:
   pythonapp:
     build: ./marketScraper/
+    environment:
+      - MY_USER=${MY_USER}
+      - MY_PWD=${MY_PWD}
     command: sh -c "sleep 10s ; python3 ./main.py"
     depends_on:
       - mysql

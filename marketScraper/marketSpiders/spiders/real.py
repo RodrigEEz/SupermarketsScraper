@@ -14,50 +14,44 @@ class realSpider(scrapy.Spider):
     
         yield scrapy.Request(
             url=url,
-            callback=self.parse
+            callback=self.follow_categories
         )
 
-    def parse(self, response):
+
+    def follow_categories(self, response):
+       """Follows every product category link"""
        
-       links = response.xpath('//div[@class="level0 submenu"]')
+       links = response.xpath('//div[@class="level0 submenu"]//li[@class = "ui-menu-item level2 "]//a/@href').getall()
+       alt_links = response.xpath('.//li[@class ="ui-menu-item level1 parent-ul-cat-mega-menu"]//a/@href').getall()
+       links.append(alt_links)
+       links = filter(None,links)
 
-       for link in links:
-           category1 = link.xpath('.//div[@class="menu-top-block"]/text()').get().strip()
-           sublinks = link.xpath('.//li[@class ="ui-menu-item level1 parent parent-ul-cat-mega-menu"]')
-           alt_sublinks = link.xpath('.//li[@class ="ui-menu-item level1 parent-ul-cat-mega-menu"]')
-           sublinks.append(alt_sublinks)
-           for sublink in filter(None,sublinks):
-                category2 = sublink.xpath('.//a[@class="title-cat-mega-menu"]//span/text()').get()
-                sublinks2 = sublink.xpath('.//li[@class = "ui-menu-item level2 "]')
-                if sublinks2 == []:
-                    category3 = category2
-                    products_link = sublink.xpath('.//a/@href').get()
-                    yield response.follow(
-                        products_link,
-                        callback=self.parse_page, 
-                        cb_kwargs={"1": category1,"2": category2,"3" : category3}
-                        )
-                else:
-                    for sublink2 in sublinks2:
-                        products_link = sublink2.xpath('.//a/@href').get()
-                        category3 = sublink2.xpath('.//span/text()').get().strip()
-                        yield response.follow(
-                            products_link,
-                            callback=self.parse_page, 
-                            cb_kwargs={"1": category1,"2": category2,"3" : category3}
-                            )
+       yield from response.follow_all(links,callback=self.follow_products) 
 
-    def parse_page(self, response, **kwargs):
+
+    def follow_products(self, response):
+        """Follows every product link"""
+
+        # extract category levels from URL so it can be passed to the product parsing
+        categories = re.sub('(-0)|(\\.html)|(^(.*?)\\.py/)', '', response.request.url)
+        categories = [x.replace('-',' ') for x in categories.split('/')]
+        keys = ['1', '2', '3']
+        if len(categories) < 3: categories[2] = categories[1]
+        categories = dict(zip(keys,categories)) 
+
+        # product links
         product_links = response.xpath('//a[@class = "product-item-link"]/@href').getall()
 
-        yield from response.follow_all(product_links, callback= self.parse_product, cb_kwargs=kwargs)
+        yield from response.follow_all(product_links, callback= self.parse_product, cb_kwargs=categories)
 
+        # next page link
         next_page = response.xpath('//li[@class="item pages-item-next"]//@href').get()
 
         if next_page is not None:
-            yield response.follow(next_page, callback=self.parse_page, cb_kwargs=kwargs)
+            yield response.follow(next_page, callback=self.follow_products)
 
     def parse_product(self, response, **kwargs):
+        """Parses product information. Every string is uppercased"""
 
         product = Product()
         product.set_all()
@@ -72,10 +66,7 @@ class realSpider(scrapy.Spider):
         product['price'] = int(re.sub('[^0-9]','', price))
 
         for i,category in enumerate(('category1', 'category2', 'category3')):
-            try:
                 product[category] = kwargs[str(i+1)].upper()
-            except IndexError:
-                pass
 
         product['supermarket'] = 'REAL'
 

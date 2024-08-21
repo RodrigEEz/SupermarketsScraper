@@ -4,6 +4,8 @@ from ..items import Product
 import re
 
 class vierciSpider(scrapy.Spider):
+    """Spider for vierci supermarkets. Both supermarkets owned by Grupo Vierci use the same webpage structure"""
+
     name = 'vierci'
 
     url = ""
@@ -14,28 +16,33 @@ class vierciSpider(scrapy.Spider):
     
         yield scrapy.Request(
             url=url,
-            callback=self.parse
+            callback=self.follow_categories
         )
 
-    def parse(self, response):
+
+    def follow_categories(self, response):
+        """Follows every product category link"""
         
-        links = response.xpath('//div[@class = "header-wrapper"]//li[contains(@class,"inactive level1")]//li[@class = "inactive level3"]/a/@href').getall()
+        links = response.xpath('//div[@class = "header-wrapper"]//li[@class = "inactive level3"]/a/@href').getall()
 
-        yield from response.follow_all(links, callback=self.parse_page)
+        yield from response.follow_all(links, callback=self.follow_products)
 
 
-    def parse_page(self, response):
+    def follow_products(self, response):
+        """Follows every product link"""
+
+        # product links
         product_links = response.xpath('//div[@class = "item-box"]//a[@class = "picture-link"]/@href').getall()
-
         yield from response.follow_all(product_links, callback= self.parse_product)
 
-        next_page = response.xpath('//div[@class = "product-pager"]//div[@class = "product-pager-box"]//a[text()[normalize-space(.) = "Siguiente"]]/@href').get()
-
+        # next page link
+        next_page = response.xpath('//a[text()[normalize-space(.) = "Siguiente"]]/@href').get()
         if next_page is not None:
-            yield response.follow(next_page, callback=self.parse_page)
+            yield response.follow(next_page, callback=self.follow_products)
 
 
     def parse_product(self, response):
+        """Parses product information. Every string is uppercased"""
 
         product = Product()
 
@@ -56,7 +63,8 @@ class vierciSpider(scrapy.Spider):
             try:
                 product[category] = categories[i].upper()
             except IndexError:
-                pass
+                # if no level 3 category exists, copies level 2 category
+                product[category] = categories[i-1].upper()
 
         product['supermarket'] = 'SUPERSEIS'
 

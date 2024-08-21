@@ -1,4 +1,4 @@
-import re, datetime, mysql
+import re, datetime, os
 import mysql.connector
 
 def clean_list(query):
@@ -16,8 +16,12 @@ def get_today():
     return datetime.date.today()
 
 def define_connection():
+    """returns live connection to database"""
 
-    #for sqlite3
+    user = os.environ['MY_USER']
+    password = os.environ['MY_PWD'] 
+
+    #for mysql
     return mysql.connector.connect(
-        user='root',password='root',host='mysql',port='3306',database='db'
+        user=user,password=password,host='mysql',port='3306',database='db'
     )
